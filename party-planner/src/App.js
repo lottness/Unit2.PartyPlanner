@@ -12,7 +12,7 @@ const PartyList = ({ parties, onDelete }) => {
           <br />
           Description: {party.description}
           <br />
-          <button onClick={() => onDelete(index)}>Delete</button>
+          <button onClick={() => onDelete(party._id)}>Delete</button>
         </li>
       ))}
     </ul>
@@ -34,7 +34,21 @@ const PartyForm = ({ onAdd }) => {
 
   const handleSubmit = (e) => {
     e.preventDefault();
-    onAdd(formData);
+
+    fetch(
+      "https://fsa-crud-2aa9294fe819.herokuapp.com/api/2310-fsa-et-web-pt/events",
+      {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(formData),
+      }
+    )
+      .then((response) => response.json())
+      .then((data) => onAdd(data))
+      .catch((error) => console.error("Error adding party:", error));
+
     setFormData({
       name: "",
       date: "",
@@ -115,14 +129,22 @@ function App() {
       .catch((error) => console.error("Error fetching data:", error));
   }, []);
 
-  const handleDelete = (index) => {
-    const updatedParties = [...parties];
-    updatedParties.splice(index, 1);
-    setParties(updatedParties);
+  const handleDelete = (partyId) => {
+    fetch(
+      `https://fsa-crud-2aa9294fe819.herokuapp.com/api/2310-fsa-et-web-pt/events/${partyId}`,
+      {
+        method: "DELETE",
+      }
+    )
+      .then(() => {
+        const updatedParties = parties.filter((party) => party._id !== partyId);
+        setParties(updatedParties);
+      })
+      .catch((error) => console.error("Error deleting party:", error));
   };
 
   const handleAdd = (newParty) => {
-    console.log("Adding a new party:", newParty);
+    setParties([...parties, newParty]);
   };
 
   return (
